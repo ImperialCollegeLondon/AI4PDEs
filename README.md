@@ -20,6 +20,7 @@ B. Chen, C. E. Heaney, J. L. M. A. Gomes, O. K. Matar and C. C. Pain. Solving th
 
 3. **Run one of the example files**
    ```
+   cd AI4PDEs_unstructured
    jupyter notebook flow_past_block.ipynb
    ```
 <!--   

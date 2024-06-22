@@ -16,11 +16,11 @@ B. Chen, C. E. Heaney, J. L. M. A. Gomes, O. K. Matar and C. C. Pain. Solving th
    ```sh
    git clone https://github.com/ImperialCollegeLondon/AI4PDEs.git
    ```
-2. **create an environment with numpy, pytorch, matplotlib**
+2. **Create an environment with numpy, pytorch, matplotlib**
 
 3. **Run one of the example files**
    ```
-   flow_past_block.ipynb
+   jupyter notebook flow_past_block.ipynb
    ```
 <!--   
 *** ## Usage

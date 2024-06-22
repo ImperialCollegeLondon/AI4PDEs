@@ -16,7 +16,7 @@ B. Chen, C. E. Heaney, J. L. M. A. Gomes, O. K. Matar and C. C. Pain. Solving th
    ```sh
    git clone https://github.com/ImperialCollegeLondon/AI4PDEs.git
    ```
-2. **Create an environment with numpy, pytorch, matplotlib**
+2. **Create an environment with numpy, pandas, pytorch, matplotlib**
 
 3. **Run one of the example files**
    ```

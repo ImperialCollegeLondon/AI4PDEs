@@ -22,6 +22,8 @@ B. Chen, C. E. Heaney, J. L. M. A. Gomes, O. K. Matar and C. C. Pain. Solving th
    ```
    cd ai4pdes/structured/
    jupyter notebook flow_past_block.ipynb
+   jupyter notebook advection_diffusion.ipynb
+   jupyter notebook flow_past_buildings.ipynb
    ```
 <!--   
 *** ## Usage

@@ -17,8 +17,11 @@ B. Chen, C. E. Heaney, J. L. M. A. Gomes, O. K. Matar and C. C. Pain. Solving th
    git clone https://github.com/ImperialCollegeLondon/AI4PDEs.git
    ```
 2. **Install**
-   ```pip install . ``` or 
-   ```pip install -e ."[dev]"```
+
+   Currently requires python>=3.10.
+
+   ```python -m pip install . ``` or 
+   ```python -m pip install -e ."[dev]"```
 
 3. **Run one of the example files**
    ```

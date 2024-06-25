@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+license = "MIT"
+description = "PDE solvers expressed as neural networks in Pytorch."
+readme = "README.md"
+
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
+
+]
+
+[project]
+name = "ai4pdes"
+version = "0.1.0"
+authors = [
+  { name = "Boyang Chen",      email = "boyang.chen16@imperial.ac.uk" },
+  { name = "Claire E. Heaney", email = "c.heaney@imperial.ac.uk" },
+
+]
+description = "PDE solvers expressed as neural networks in Pytorch."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy",
+                "matplotlib",
+                "torch",
+                "jupyter",
+                "pandas",
+                "ipykernel"]
+
+[project.optional-dependencies]
+dev = [
+  "pytest >=6",
+  "pytest-cov >=3",
+  "pre-commit",
+]
+
+[project.urls]
+Homepage = "https://github.com/ImperialCollegeLondon/AI4PDEs"
+"Bug Tracker" = "https://github.com/ImperialCollegeLondon/AI4PDEs/issues"
+Discussions = "https://github.com/ImperialCollegeLondon/AI4PDEs/discussions"
+Changelog = "https://github.com/ImperialCollegeLondon/AI4PDEs/releases"
+

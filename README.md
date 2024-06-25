@@ -1,6 +1,6 @@
 # AI4PDEs
 
-Tests: [![AI4PDEs](https://github.com/ImperialCollegeLondon/AI4PDEs/actions/workflows/python-package.yml/badge.svg)](https://github.com/ImperialCollegeLondon/AI4PDEs/actions/workflows/python-package.yml)
+[![Tests](https://github.com/ImperialCollegeLondon/AI4PDEs/actions/workflows/ci.yml/badge.svg)](https://github.com/ImperialCollegeLondon/AI4PDEs/actions/workflows/ci.yml)
 
 AI4PDEs is a package that solves partial differential equations (PDEs) using functionality from PyTorch.
 

@@ -10,7 +10,12 @@ AI4PDEs is a package that solves partial differential equations (PDEs) using fun
    ```sh
    git clone https://github.com/ImperialCollegeLondon/AI4PDEs.git
    ```
-2. **Create an environment with numpy, pandas, pytorch, matplotlib**
+2. **Install**
+
+   Currently requires python>=3.10.
+
+   ```python -m pip install . ``` or 
+   ```python -m pip install -e ."[dev]"```
 
 3. **Run one of the example files**
    ```

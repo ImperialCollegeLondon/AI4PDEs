@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 
 # import all models
-from . import Grid
-from . import FlowPastBlock
-from . import Block
+from . import boundary_conditions, feedback, grid, multigrid, operators, output, run
+from . import time_stepping, variables, viscosity
+
+from . import models

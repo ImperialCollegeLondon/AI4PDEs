@@ -1,5 +1,3 @@
-bias_initializer = torch.tensor([0.0])  # Initial bias as 0 for NNs 
-
 #-- Import general libraries
 import numpy as np
 import torch

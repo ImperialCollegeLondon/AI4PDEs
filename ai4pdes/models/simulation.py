@@ -9,8 +9,8 @@ class Simulation:
         self.model = model
 
     def run(self,
-        ntimesteps = 100,
-    ):
+        ntimesteps = 100):
+        pass
         # with torch.no_grad():
         # for itime in range(1,ntimesteps+1):
 

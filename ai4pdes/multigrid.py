@@ -1,3 +1,5 @@
+import math 
+
 class FcycleMultigrid:
     def __init__(self,
         grid,

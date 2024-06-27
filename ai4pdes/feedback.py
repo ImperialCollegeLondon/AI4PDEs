@@ -1,3 +1,5 @@
+import numpy as np
+
 class Feedback:
     def __init__(self,
         ncheck = 100,               # Time step to check residual
@@ -14,8 +16,8 @@ class Feedback:
         diagnostic_variables,
     ):
         if itime % self.ncheck == 0:
-            w = diagnostic_variables.w
-            residual = np.max(np.abs(w.cpu().detach().numpy()))
+            a = diagnostic_variables.a
+            residual = np.max(np.abs(a.cpu().detach().numpy()))
             print('Time step:', itime, 'Pressure residual:',"{:.5f}".format(residual))
 
             if residual > self.residual_max:

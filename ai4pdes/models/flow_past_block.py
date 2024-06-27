@@ -68,10 +68,15 @@ class FlowPastBlock:
         return u, v   
 
     def forward(self,
-                prognostic_variables,
-                diagnostic_variables,
-                dt):
+        prognostic_variables,
+        diagnostic_variables,
+        ):
 
+        # do not execute forward step if simulation should stop (NaNs detected, not converging...)
+        if self.feedback.stop_simulation:
+            return None
+
+        dt = self.time_stepping.dt
         u = prognostic_variables.u  # unpack u, v, p
         v = prognostic_variables.v
         p = prognostic_variables.p

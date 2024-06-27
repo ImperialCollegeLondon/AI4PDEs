@@ -7,6 +7,11 @@ import matplotlib.pyplot as plt
 grid = ai4pdes.grid.Grid(nx=1024, ny=256)
 prognostic_variables = ai4pdes.variables.PrognosticVariables(grid)
 diagnostic_variables = ai4pdes.variables.DiagnosticVariables(grid)
+
+plot_u(prognostic_variables)
+plt.show()
+
+
 # Create same block as notebook
 block = Block(grid=grid, cor_x=145, cor_y=int(grid.ny/2), size_x=25, size_y=25)
 model = FlowPastBlock(grid, block=block)

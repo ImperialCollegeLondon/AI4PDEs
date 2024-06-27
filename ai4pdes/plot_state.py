@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def plot_state(variable, variable_title):
     """Plot state"""
     fig = plt.figure(figsize=(15, 6))
-    plt.imshow(-variable)
+    plt.imshow(-variable[0, 0, :, :])
     plt.colorbar()
     plt.title(variable_title)
     return fig

@@ -100,10 +100,10 @@ def boundary_condition_3D_p(values_p, values_pp):
 
 # TODO
 def boundary_condition_3D_k(k_u):
-	k_uu = F.pad(k_u, (1, 1, 1, 1, 1, 1), mode='constant', value=0)
+	k_uu = torch.nn.functional.pad(k_u, (1, 1, 1, 1, 1, 1), mode='constant', value=0)
 	return k_uu
 
 # TODO
 def boundary_condition_3D_cw(w):
-	ww = F.pad(w, (1, 1, 1, 1, 1, 1), mode='constant', value=0)
+	ww = torch.nn.functional.pad(w, (1, 1, 1, 1, 1, 1), mode='constant', value=0)
 	return ww

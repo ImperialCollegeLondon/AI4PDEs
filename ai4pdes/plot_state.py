@@ -50,18 +50,20 @@ def plot_sensor(output):
         plt.ylabel('u velocity (m/s)')
     return fig
 
-def update(t):
-    # for each frame, update the data stored on each artist.
-    # Open file for timestep t
-    u_t = np.load(f"{filepath}/u{t}.npy")
-    quad0.set_array(u_t)
-    plt.title(f"Flow at time {t}")
-
-def animate_u(filepath, n_t, save_filename):
+def animate_u(filepath, n_t, save_filename, dt=50):
     """Plot animation"""
     fig = plt.figure(figsize=(15, 10))
-
-    ani = animation.FuncAnimation(fig=fig, func=update, frames=n_t, 
+    u_t = np.load(f"{filepath}/u1.npy")
+    im = plt.imshow(-u_t[0, 0, :, :]) #, vmin=-2, vmax=2)
+    plt.colorbar()
+    def update(t):
+        # for each frame, update the data stored on each artist.
+        # Open file for timestep t
+        u_t = np.load(f"{filepath}/u{t*dt+1}.npy")
+        im.set_array(-u_t[0, 0, :, :])
+        plt.title(f"Flow at time {t*dt+1}")
+ 
+    ani = animation.FuncAnimation(fig=fig, func=update, frames=n_t-1,
                                   interval=30, blit=False)
     writer = animation.PillowWriter(fps=15,
                                 metadata=dict(artist='Me'),

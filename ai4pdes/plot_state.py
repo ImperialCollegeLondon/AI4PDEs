@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from PIL import Image
+import matplotlib.animation as animation
+from IPython.display import HTML
+
 def plot_state(variable, variable_title):
     """Plot state"""
     fig = plt.figure(figsize=(15, 6))
@@ -37,3 +41,10 @@ def plot_sensor(output):
         plt.xlabel('Time step')
         plt.ylabel('u velocity (m/s)')
     return fig
+
+def animate_u(filepath, n_t):
+    """Plot animation"""
+    for t in range(n_t):
+        # Open file
+        u_t = np.load(f"{filepath}/u{t}.npy")
+

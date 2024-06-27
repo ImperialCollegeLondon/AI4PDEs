@@ -28,7 +28,19 @@ AI4PDEs is a package that solves partial differential equations (PDEs) using fun
 
 ## Usage
 
-to be completed
+Run your first model of flow past a block!
+
+```python
+import ai4pdes
+from ai4pdes.models import FlowPastBlock, Block
+from ai4pdes.grid import Grid
+
+grid = Grid(nx=254, ny=62)
+block = Block(grid)
+model = FlowPastBlock(grid, block)
+simulation = model.initialize()
+simulation.run(ntimesteps=100)
+```
 
 ## Contributing
 

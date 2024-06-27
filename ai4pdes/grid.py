@@ -1,4 +1,5 @@
-import torch 
+import torch
+
 class Grid:
     def __init__(self,
         dx=1.0,

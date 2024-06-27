@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 
 # import all models
-from . import boundary_conditions, feedback, grid, operators, output
+from . import boundary_conditions, feedback, grid, operators, output, plot_state
 from . import time_stepping, variables, viscosity
 
 from . import models

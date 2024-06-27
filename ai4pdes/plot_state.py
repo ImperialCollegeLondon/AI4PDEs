@@ -25,3 +25,15 @@ def plot_speed(prognostic_variables):
                              prognostic_variables.v.detach().numpy()**2), "speed (m/s)")
     return fig
 
+
+def plot_sensor(output):
+    """Plot what the sensor sees"""
+    fig = plt.figure(figsize=(15, 10))
+    for i in range(output.nsensors):
+        plt.subplot(output.nsensors, 1, i+1)
+        plt.plot(output.sensor_locations[i,:],
+                 label=f'Numerical probe {i+1}')
+        plt.legend()
+        plt.xlabel('Time step')
+        plt.ylabel('u velocity (m/s)')
+    return fig

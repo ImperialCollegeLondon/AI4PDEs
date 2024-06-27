@@ -1,6 +1,5 @@
 import ai4pdes
 from ai4pdes.models import FlowPastBlock
-
 import matplotlib.pyplot as plt
 
 grid = ai4pdes.grid.Grid(nx=1024, ny=256)

@@ -24,3 +24,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Jupyter
+.ipynb_checkpoints

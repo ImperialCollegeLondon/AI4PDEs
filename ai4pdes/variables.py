@@ -27,5 +27,6 @@ class DiagnosticVariables:
         self.bv = torch.zeros(shape, device=grid.device)
         self.bw = torch.zeros(shape, device=grid.device) if grid.is3D() else None
 
-        self.w = 
+        # multigrid array
+        self.a = torch.zeros((1,1,1,1), device=grid.device)
 

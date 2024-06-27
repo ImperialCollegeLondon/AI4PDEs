@@ -1,3 +1,6 @@
+import time
+import torch
+
 class Simulation:
     def __init__(self,
         prognostic_variables,

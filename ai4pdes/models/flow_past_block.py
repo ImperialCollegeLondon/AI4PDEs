@@ -73,7 +73,10 @@ class FlowPastBlock:
                 dt):
         #values_u, values_uu, values_v, values_vv, values_p, values_pp, sigma, b_uu, b_vv, dt, iteration):      
         # values_u --> prognostic_variables.u
-
+        values_uu = boundary_condition_2D_u(prognostic_variables.u,prognostic_variables.uu, self.grid.ub) 
+        values_vv = boundary_condition_2D_v(prognostic_variables.v,prognostic_variables.vv, self.grid.ub)  
+        values_pp = boundary_condition_2D_p(diagnostic_variables.p,diagnostic_variables.pp)   
+        
         Grapx_p  = self.xadv(diagnostic_variables.pp) * dt 
         Grapy_p = self.yadv(diagnostic_variables.pp) * dt 
 

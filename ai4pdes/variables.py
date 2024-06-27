@@ -40,4 +40,6 @@ class DiagnosticVariables:
         self.bw = torch.zeros(shape, device=grid.device) if grid.is3D() else None
 
         self.pp = torch.zeros(shape_with_halo, device=grid.device)
+        self.b_uu = torch.zeros(shape_with_halo, device=grid.device)
+        self.b_vv = torch.zeros(shape_with_halo, device=grid.device)
 

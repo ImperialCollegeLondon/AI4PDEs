@@ -4,7 +4,8 @@ from ai4pdes.output import Output
 from ai4pdes.feedback import Feedback
 from ai4pdes.multigrid import FcycleMultigrid
 from ai4pdes.variables import PrognosticVariables, DiagnosticVariables
-from ai4pdes.operators import get_weights_linear_2D, boundary_condition_2D_u, boundary_condition_2D_p, boundary_condition_2D_v
+from ai4pdes.operators import get_weights_linear_2D
+from ai4pdes.boundary_conditions import boundary_condition_2D_u, boundary_condition_2D_p, boundary_condition_2D_v, boundary_condition_2D_cw
 from ai4pdes.models.simulation import Simulation
 
 import math
@@ -21,6 +22,8 @@ class FlowPastBlock:
         multigrid = None,
         output = Output(),
         feedback = Feedback(),
+        niteration = 5,
+
     ):
         self.grid = grid
         self.block = Block(grid) if block is None else block
@@ -29,6 +32,10 @@ class FlowPastBlock:
         self.multigrid = FcycleMultigrid(grid) if multigrid is None else multigrid
         self.output = output
         self.feedback = feedback
+
+        # Temporary
+        self.niteration = niteration
+        self.nlevel = int(math.log(self.grid.ny, 2)) + 1
 
         # Define operators
         self.xadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=0)
@@ -45,6 +52,7 @@ class FlowPastBlock:
         self.diff.weight.data = w1
         self.A.weight.data = wA
         self.res.weight.data = w_res
+        self.diag = diag
 
         # Set bias
         bias_initializer = torch.tensor([0.0])     # Initial bias is always 0 for NNs 
@@ -82,8 +90,8 @@ class FlowPastBlock:
         [diagnostic_variables.b_u, diagnostic_variables.b_v] = self.solid_body(diagnostic_variables.b_u, diagnostic_variables.b_v, self.block.sigma, dt)
 
         # Padding velocity vectors 
-        diagnostic_variables.b_uu = boundary_condition_2D_u(diagnostic_variables.b_u,diagnostic_variables.b_uu, ub) 
-        diagnostic_variables.b_vv = boundary_condition_2D_v(diagnostic_variables.b_v,diagnostic_variables.b_vv,ub) 
+        diagnostic_variables.b_uu = boundary_condition_2D_u(diagnostic_variables.b_u,diagnostic_variables.b_uu, self.grid.ub) 
+        diagnostic_variables.b_vv = boundary_condition_2D_v(diagnostic_variables.b_v,diagnostic_variables.b_vv, self.grid.ub) 
 
         ADx_u = self.xadv(diagnostic_variables.b_uu) ; ADy_u = self.yadv(diagnostic_variables.b_uu) 
         ADx_v = self.xadv(diagnostic_variables.b_vv) ; ADy_v = self.yadv(diagnostic_variables.b_vv) 
@@ -95,9 +103,9 @@ class FlowPastBlock:
         [prognostic_variables.u, prognostic_variables.v] = self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
 
         # pressure
-        prognostic_variables.uu = boundary_condition_2D_u(prognostic_variables.u,prognostic_variables.uu,ub) 
-        prognostic_variables.vv = boundary_condition_2D_v(prognostic_variables.v,prognostic_variables.vv,ub)  
-        [diagnostic_variables.p, w ,r] = self.F_cycle_MG(prognostic_variables.uu, prognostic_variables.vv, diagnostic_variables.p, diagnostic_variables.pp, iteration, diag, dt, nlevel)
+        prognostic_variables.uu = boundary_condition_2D_u(prognostic_variables.u,prognostic_variables.uu, self.grid.ub) 
+        prognostic_variables.vv = boundary_condition_2D_v(prognostic_variables.v,prognostic_variables.vv, self.grid.ub)  
+        [diagnostic_variables.p, w ,r] = self.F_cycle_MG(prognostic_variables.uu, prognostic_variables.vv, diagnostic_variables.p, diagnostic_variables.pp, self.niteration, self.diag, dt, self.nlevel)
         # Pressure gradient correction    
         diagnostic_variables.pp = boundary_condition_2D_p(diagnostic_variables.p, diagnostic_variables.pp )  
         prognostic_variables.u = prognostic_variables.u - self.xadv(diagnostic_variables.pp) * dt
@@ -116,6 +124,24 @@ class FlowPastBlock:
         # gather into a simulation object
         simulation = Simulation(prognostic_variables, diagnostic_variables, self)
         return simulation
+    
+    def F_cycle_MG(self, values_uu, values_vv, values_p, values_pp, iteration, diag, dt, nlevel):
+        b = -(self.xadv(values_uu) + self.yadv(values_vv)) / dt
+        for MG in range(iteration):
+            w = torch.zeros((1,1,1,1), device=self.grid.device)
+            r = self.A(boundary_condition_2D_p(values_p, values_pp)) - b 
+            r_s = []  
+            r_s.append(r)
+            for i in range(1,nlevel):
+                r = self.res(r)
+                r_s.append(r)
+            for i in reversed(range(1,nlevel)):
+                ww = boundary_condition_2D_cw(w)
+                w = w - self.A(ww) / diag + r_s[i] / diag
+                w = self.prol(w)         
+            values_p = values_p - w
+            values_p = values_p - self.A(boundary_condition_2D_p(values_p, values_pp)) / diag + b / diag
+        return values_p, w, r
     
 class Block:
     def __init__(

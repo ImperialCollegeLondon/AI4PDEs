@@ -27,3 +27,6 @@ MANIFEST
 
 # Virtual environment
 *.venv
+
+# Jupyter
+.ipynb_checkpoints

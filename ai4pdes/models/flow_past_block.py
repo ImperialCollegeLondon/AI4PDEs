@@ -154,8 +154,7 @@ class Block:
         cor_y = None,
         size_x = None,
         size_y = None,
-    ):
-        
+    ):    
         self.cor_x = int(grid.nx/4) if cor_x is None else cor_x
         self.cor_y = int(grid.ny/4) if cor_y is None else cor_y
         self.size_x = int(grid.nx/4) if size_x is None else size_x

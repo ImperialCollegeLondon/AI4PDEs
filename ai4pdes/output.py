@@ -1,3 +1,5 @@
+import numpy as np
+
 class Output:
     def __init__(self,
         nout = 100,             # Time step to save results

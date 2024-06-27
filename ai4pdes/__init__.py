@@ -5,11 +5,9 @@ import time
 import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
 
 # import all models
-from . import boundary_conditions, feedback, grid, multigrid, operators, output, run
+from . import boundary_conditions, feedback, grid, multigrid, operators, output
 from . import time_stepping, variables, viscosity
 
 from . import models

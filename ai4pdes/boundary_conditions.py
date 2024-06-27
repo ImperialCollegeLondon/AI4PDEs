@@ -1,3 +1,5 @@
+import torch
+
 def boundary_condition_2D_u(u, ub, halo=1):
 	u[0, 0,      :,  :halo].fill_(ub)	# inflow on the right x=0
 	u[0, 0,      :, -halo:].fill_(ub)	# outflow on the left x=Lx
@@ -12,20 +14,28 @@ def boundary_condition_2D_v(v, ub, halo=1):
 	v[0, 0, -halo:,      :].fill_(0.0)	# v=0 at y=Ly (no outflow to north)
 	return v
 
-def boundary_condition_2D_p(p, halo=1):
-	halo_mirror = slice(2*halo-1, halo-1, -1)			# halo mirrored around x=y=0
-	p[0, 0,      :,  :halo] = p[0, 0, :, halo_mirror]	# dp/dx=0 at x=0
-	p[0, 0,      :, -halo:].fill_(0.0)					# p=0 at x=Lx
-	p[0, 0,  :halo,  :] = p[0, 0,  halo_mirror, :]		# dp/dy=0 at y=0
-	
-	halo_mirror = slice(-halo-1, -2*halo-1, -1)			# halo mirrored around x=y=L
-	p[0, 0, -halo:,  :] = p[0, 0, halo_mirror, :]		# dp/dy=0 at y=Ly
+def boundary_condition_2D_p(p):
+	p[0, 0,  :,  0] = p[0, 0, :, 1]     # dp/dx=0 at x=0
+	p[0, 0,  :, -1].fill_(0.0)		    # p=0 at x=Lx
+	p[0, 0,  0,  :] = p[0, 0,  1, :]    # dp/dy=0 at y=0
+	p[0, 0, -1,  :] = p[0, 0, -2, :]	# dp/dy=0 at y=Ly
 	return p
+
+# TODO generalise to halo>1
+# def boundary_condition_2D_p(p, halo=1):
+# 	halo_mirror = slice(2*halo-1, halo-1, -1)			# halo mirrored around x=y=0
+# 	p[0, 0,      :,  :halo] = p[0, 0, :, halo_mirror]	# dp/dx=0 at x=0
+# 	p[0, 0,      :, -halo:].fill_(0.0)					# p=0 at x=Lx
+# 	p[0, 0,  :halo,      :] = p[0, 0,  halo_mirror, :]	# dp/dy=0 at y=0
+	
+# 	halo_mirror = slice(-halo-1, -2*halo-1, -1)			# halo mirrored around x=y=L
+# 	p[0, 0, -halo:,  :] = p[0, 0, halo_mirror, :]		# dp/dy=0 at y=Ly
+# 	return p
 
 def boundary_condition_2D_cw(w):
 	ny = w.shape[2]
 	nx = w.shape[3]
-	ww = F.pad(w, (1, 1, 1, 1), mode='constant', value=0)
+	ww = torch.nn.functional.pad(w, (1, 1, 1, 1), mode='constant', value=0)
 	ww[0, 0,    :,    0] = ww[0, 0,  :,  1]*0
 	ww[0, 0,    :, nx+1] = ww[0, 0,  :, nx]*0
 	ww[0, 0,    0,    :] = ww[0, 0,  1,  :]*0

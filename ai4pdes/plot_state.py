@@ -30,6 +30,14 @@ def plot_speed(prognostic_variables):
     return fig
 
 
+def plot_from_file(filename, variable_title):
+    """Plot variable after saving to file. Filename should be .npy"""
+    variable = np.load(filename)
+    fig = plot_state(variable, variable_title)
+    return fig
+
+    
+
 def plot_sensor(output):
     """Plot what the sensor sees"""
     fig = plt.figure(figsize=(15, 10))
@@ -42,9 +50,22 @@ def plot_sensor(output):
         plt.ylabel('u velocity (m/s)')
     return fig
 
-def animate_u(filepath, n_t):
+def update(t):
+    # for each frame, update the data stored on each artist.
+    # Open file for timestep t
+    u_t = np.load(f"{filepath}/u{t}.npy")
+    quad0.set_array(u_t)
+    plt.title(f"Flow at time {t}")
+
+def animate_u(filepath, n_t, save_filename):
     """Plot animation"""
-    for t in range(n_t):
-        # Open file
-        u_t = np.load(f"{filepath}/u{t}.npy")
+    fig = plt.figure(figsize=(15, 10))
+
+    ani = animation.FuncAnimation(fig=fig, func=update, frames=n_t, 
+                                  interval=30, blit=False)
+    writer = animation.PillowWriter(fps=15,
+                                metadata=dict(artist='Me'),
+                                bitrate=1800)
+    ani.save(save_filename, writer=writer)
+    print(f"Animation generated and saved as {save_filename}.")
 

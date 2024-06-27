@@ -62,59 +62,66 @@ class FlowPastBlock:
         self.A.bias.data = bias_initializer
         self.res.bias.data = bias_initializer
     
-    def solid_body(self, values_u, values_v, sigma, dt):
-        values_u = values_u / (1 + dt * sigma) 
-        values_v = values_v / (1 + dt * sigma) 
-        return values_u, values_v   
+    def solid_body(self, u, v, sigma, dt):
+        u = u / (1 + dt * sigma) 
+        v = v / (1 + dt * sigma) 
+        return u, v   
 
     def forward(self,
                 prognostic_variables,
                 diagnostic_variables,
                 dt):
-        #values_u, values_uu, values_v, values_vv, values_p, values_pp, sigma, b_uu, b_vv, dt, iteration):      
-        # values_u --> prognostic_variables.u
-        prognostic_variables.uu = boundary_condition_2D_u(prognostic_variables.u,prognostic_variables.uu, self.grid.ub) 
-        prognostic_variables.vv = boundary_condition_2D_v(prognostic_variables.v,prognostic_variables.vv, self.grid.ub)  
-        diagnostic_variables.pp = boundary_condition_2D_p(diagnostic_variables.p,diagnostic_variables.pp)   
-        
-        Grapx_p  = self.xadv(diagnostic_variables.pp) * dt 
-        Grapy_p = self.yadv(diagnostic_variables.pp) * dt 
 
-        ADx_u = self.xadv(prognostic_variables.uu) 
-        ADy_u = self.yadv(prognostic_variables.uu) 
-        ADx_v = self.xadv(prognostic_variables.vv)
-        ADy_v = self.yadv(prognostic_variables.vv) 
-        AD2_u = self.diff(prognostic_variables.uu)
-        AD2_v = self.diff(prognostic_variables.vv) 
+        u = prognostic_variables.u  # unpack u, v, p
+        v = prognostic_variables.v
+        p = prognostic_variables.p
+
+        boundary_condition_2D_u(u, self.grid.ub) 
+        boundary_condition_2D_v(v, self.grid.ub)  
+        boundary_condition_2D_p(p)   
+        
+        Grapx_p  = self.xadv(p) * dt 
+        Grapy_p = self.yadv(p) * dt 
+
+        ADx_u = self.xadv(u) 
+        ADy_u = self.yadv(u) 
+        ADx_v = self.xadv(v)
+        ADy_v = self.yadv(v) 
+        AD2_u = self.diff(u)
+        AD2_v = self.diff(v) 
 
         # First step for solving uvw
-        diagnostic_variables.b_u = prognostic_variables.u + 0.5 * (self.viscosity.nu * AD2_u * dt - prognostic_variables.u * ADx_u * dt - prognostic_variables.v * ADy_u * dt) - Grapx_p 
-        diagnostic_variables.b_v = prognostic_variables.v + 0.5 * (self.viscosity.nu * AD2_v * dt - prognostic_variables.u * ADx_v * dt - prognostic_variables.v * ADy_v * dt) - Grapy_p 
-        [diagnostic_variables.b_u, diagnostic_variables.b_v] = self.solid_body(diagnostic_variables.b_u, diagnostic_variables.b_v, self.block.sigma, dt)
+        b_u = diagnostic_variables.b_u  # unpack b_u, b_v
+        b_v = diagnostic_variables.b_v
+
+        b_u = u + 0.5 * (self.viscosity.nu * AD2_u * dt - u * ADx_u * dt - v * ADy_u * dt) - Grapx_p 
+        b_v = v + 0.5 * (self.viscosity.nu * AD2_v * dt - u * ADx_v * dt - v * ADy_v * dt) - Grapy_p 
+        [b_u, b_v] = self.solid_body(b_u, b_v, self.block.sigma, dt)
 
         # Padding velocity vectors 
-        diagnostic_variables.b_uu = boundary_condition_2D_u(diagnostic_variables.b_u,diagnostic_variables.b_uu, self.grid.ub) 
-        diagnostic_variables.b_vv = boundary_condition_2D_v(diagnostic_variables.b_v,diagnostic_variables.b_vv, self.grid.ub) 
+        boundary_condition_2D_u(b_u, self.grid.ub) 
+        boundary_condition_2D_v(b_v, self.grid.ub) 
 
-        ADx_u = self.xadv(diagnostic_variables.b_uu) ; ADy_u = self.yadv(diagnostic_variables.b_uu) 
-        ADx_v = self.xadv(diagnostic_variables.b_vv) ; ADy_v = self.yadv(diagnostic_variables.b_vv) 
-        AD2_u = self.diff(diagnostic_variables.b_uu) ; AD2_v = self.diff(diagnostic_variables.b_vv) 
+        ADx_u = self.xadv(b_u) ; ADy_u = self.yadv(b_u) 
+        ADx_v = self.xadv(b_v) ; ADy_v = self.yadv(b_v) 
+        AD2_u = self.diff(b_u) ; AD2_v = self.diff(b_v) 
 
         # Second step for solving uvw   
-        prognostic_variables.u = prognostic_variables.u + self.viscosity.nu * AD2_u * dt - diagnostic_variables.b_u * ADx_u * dt - diagnostic_variables.b_v * ADy_u * dt - Grapx_p 
-        prognostic_variables.v = prognostic_variables.v + self.viscosity.nu * AD2_v * dt - diagnostic_variables.b_u * ADx_v * dt - diagnostic_variables.b_v * ADy_v * dt - Grapy_p 
-        [prognostic_variables.u, prognostic_variables.v] = self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
+        u = u + self.viscosity.nu * AD2_u * dt - b_u * ADx_u * dt - b_v * ADy_u * dt - Grapx_p 
+        v = v + self.viscosity.nu * AD2_v * dt - b_u * ADx_v * dt - b_v * ADy_v * dt - Grapy_p 
+        [u, v] = self.solid_body(u, v, self.block.sigma, dt)
 
         # pressure
-        prognostic_variables.uu = boundary_condition_2D_u(prognostic_variables.u,prognostic_variables.uu, self.grid.ub) 
-        prognostic_variables.vv = boundary_condition_2D_v(prognostic_variables.v,prognostic_variables.vv, self.grid.ub)  
-        [diagnostic_variables.p, w ,r] = self.F_cycle_MG(prognostic_variables.uu, prognostic_variables.vv, diagnostic_variables.p, diagnostic_variables.pp, self.niteration, self.diag, dt, self.nlevel)
+        boundary_condition_2D_u(u, self.grid.ub) 
+        boundary_condition_2D_v(v, self.grid.ub)  
+        [p, w, r] = self.F_cycle_MG(u, v, p, self.niteration, self.diag, dt, self.nlevel)
+
         # Pressure gradient correction    
-        diagnostic_variables.pp = boundary_condition_2D_p(diagnostic_variables.p, diagnostic_variables.pp )  
-        prognostic_variables.u = prognostic_variables.u - self.xadv(diagnostic_variables.pp) * dt
-        prognostic_variables.v = prognostic_variables.v - self.yadv(diagnostic_variables.pp) * dt 
-        [prognostic_variables.u, prognostic_variables.v] = self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
-        return prognostic_variables.u, prognostic_variables.v, diagnostic_variables.p, w, r
+        boundary_condition_2D_p(p)  
+        u = u - self.xadv(p) * dt
+        v = v - self.yadv(p) * dt 
+        [u, v] = self.solid_body(u, v, self.block.sigma, dt)
+        return u, v, p, w, r
     
     def initialize(self):
         # initialize model components, e.g.
@@ -128,12 +135,12 @@ class FlowPastBlock:
         simulation = Simulation(prognostic_variables, diagnostic_variables, self)
         return simulation
     
-    def F_cycle_MG(self, values_uu, values_vv, values_p, values_pp, iteration, diag, dt, nlevel):
-        b = -(self.xadv(values_uu) + self.yadv(values_vv)) / dt
+    def F_cycle_MG(self, u, v, p, iteration, diag, dt, nlevel):
+        b = -(self.xadv(u) + self.yadv(v)) / dt
         for MG in range(iteration):
             w = torch.zeros((1,1,1,1), device=self.grid.device)
-            r = self.A(boundary_condition_2D_p(values_p, values_pp)) - b 
-            r_s = []  
+            r = self.A(boundary_condition_2D_p(p)) - b 
+            r_s = []
             r_s.append(r)
             for i in range(1,nlevel):
                 r = self.res(r)
@@ -142,9 +149,9 @@ class FlowPastBlock:
                 ww = boundary_condition_2D_cw(w)
                 w = w - self.A(ww) / diag + r_s[i] / diag
                 w = self.prol(w)         
-            values_p = values_p - w
-            values_p = values_p - self.A(boundary_condition_2D_p(values_p, values_pp)) / diag + b / diag
-        return values_p, w, r
+            p = p - w
+            p = p - self.A(boundary_condition_2D_p(p)) / diag + b / diag
+        return p, w, r
     
 class Block:
     def __init__(

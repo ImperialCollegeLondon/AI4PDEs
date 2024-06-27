@@ -26,10 +26,10 @@ def boundary_condition_2D_cw(w):
 	ny = w.shape[2]
 	nx = w.shape[3]
 	ww = F.pad(w, (1, 1, 1, 1), mode='constant', value=0)
-	ww[0,0,:,0] =  ww[0,0,:,1]*0
-	ww[0,0,:,nx+1] = ww[0,0,:,nx]*0
-	ww[0,0,0,:] = ww[0,0,1,:]*0
-	ww[0,0,ny+1,:] = ww[0,0,ny,:]*0
+	ww[0, 0,    :,    0] = ww[0, 0,  :,  1]*0
+	ww[0, 0,    :, nx+1] = ww[0, 0,  :, nx]*0
+	ww[0, 0,    0,    :] = ww[0, 0,  1,  :]*0
+	ww[0, 0, ny+1,    :] = ww[0, 0, ny,  :]*0
 	return ww
 
 def boundary_condition_3D_u(u, ub):

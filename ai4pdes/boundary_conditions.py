@@ -53,22 +53,16 @@ def boundary_condition_3D_u(u, ub):
 	return u
     
 def boundary_condition_3D_v(v, ub):
-	nz = values_v.shape[2]
-	ny = values_v.shape[3]
-	nx = values_v.shape[4]
-	nnz = values_vv.shape[2]
-	nny = values_vv.shape[3]
-	nnx = values_vv.shape[4]
+	# TODO generalise to halo > 1
+	v[0, 0, :,  :,  0].fill_(0.0)
+	v[0, 0, :,  :, -1].fill_(0.0)
+	v[0, 0, :,  0,  :].fill_(0.0)
+	v[0, 0, :, -1,  :].fill_(0.0)
+	v[0, 0, 0,  :,  :].fill_(0.0)
+	v[0, 0, -1, :,  :] = v[0, 0, -2, :, :]
+	return v
 
-	values_vv[0,0,1:nnz-1,1:nny-1,1:nnx-1] = values_v[0,0,:,:,:]
-	values_vv[0,0,:,:,0].fill_(0.0)
-	values_vv[0,0,:,:,nx+1].fill_(0.0)
-	values_vv[0,0,:,0,:].fill_(0.0)
-	values_vv[0,0,:,ny+1,:].fill_(0.0)
-	values_vv[0,0,0,:,:].fill_(0.0)
-	values_vv[0,0,nz+1,:,:] = values_vv[0,0,nz,:,:]
-	return values_vv
-
+# TODO
 def boundary_condition_3D_w(values_w, values_ww, ub):
 	nz = values_w.shape[2]
 	ny = values_w.shape[3]
@@ -86,6 +80,7 @@ def boundary_condition_3D_w(values_w, values_ww, ub):
 	values_ww[0,0,nz+1,:,:] = values_ww[0,0,nz,:,:]
 	return values_ww
 
+# TODO
 def boundary_condition_3D_p(values_p, values_pp):
 	nz = values_p.shape[2]
 	ny = values_p.shape[3]
@@ -103,10 +98,12 @@ def boundary_condition_3D_p(values_p, values_pp):
 	values_pp[0,0,nz+1,:,:] = values_pp[0,0,nz,:,:]
 	return values_pp
 
+# TODO
 def boundary_condition_3D_k(k_u):
 	k_uu = F.pad(k_u, (1, 1, 1, 1, 1, 1), mode='constant', value=0)
 	return k_uu
 
+# TODO
 def boundary_condition_3D_cw(w):
 	ww = F.pad(w, (1, 1, 1, 1, 1, 1), mode='constant', value=0)
 	return ww

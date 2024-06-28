@@ -2,7 +2,7 @@ from ai4pdes.viscosity import Viscosity
 from ai4pdes.time_stepping import PredictorCorrector
 from ai4pdes.output import Output
 from ai4pdes.feedback import Feedback
-from ai4pdes.multigrid import FcycleMultigrid
+#from ai4pdes.multigrid import FcycleMultigrid
 from ai4pdes.variables import PrognosticVariables, DiagnosticVariables
 from ai4pdes.operators import get_weights_linear_2D
 from ai4pdes.boundary_conditions import boundary_condition_2D_u, boundary_condition_2D_p, boundary_condition_2D_v, boundary_condition_2D_cw
@@ -28,7 +28,7 @@ class FlowPastBlock:
         self.block = Block(grid) if block is None else block
         self.viscosity = viscosity
         self.time_stepping = time_stepping
-        self.multigrid = FcycleMultigrid(grid) if multigrid is None else multigrid
+        #self.multigrid = FcycleMultigrid(grid) if multigrid is None else multigrid
         self.output = output
         self.feedback = feedback
 

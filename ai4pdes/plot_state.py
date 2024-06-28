@@ -54,13 +54,13 @@ def animate_u(filepath, n_t, save_filename,
               dt=10, vmax=1.):
     """Plot animation"""
     fig = plt.figure(figsize=(15, 10))
-    u_t = np.load(f"{filepath}/u1.npy")
+    u_t = np.load(f"{filepath}/u{1*dt}.npy")
     im = plt.imshow(-u_t[0, 0, :, :], vmin=0., vmax=vmax)
     plt.colorbar()
     def update(t):
         # for each frame, update the data stored on each artist.
         # Open file for timestep t
-        u_t = np.load(f"{filepath}/u{t*dt+1}.npy")
+        u_t = np.load(f"{filepath}/u{(t+1)*dt}.npy")
         im.set_array(-u_t[0, 0, :, :])
         im.set_clim(vmin=0., vmax=vmax)
         plt.title(f"Flow at time {t*dt}")

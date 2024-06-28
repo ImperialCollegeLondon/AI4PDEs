@@ -52,9 +52,8 @@ simulation.run(ntimesteps=100)
 and visualise it
 
 ```python
-import matplotlib.pyplot as plt
-plt.imshow(-simulation.prognostic_variables.u.cpu()[0,0,:,:])
-plt.colorbar()
+from ai4pdes.plot_state import plot_u, plot_v
+plot_u(simulation.prognostic_variables)
 ```
 
 ## Contributing

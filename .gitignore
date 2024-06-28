@@ -25,5 +25,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Virtual environment
+*.venv
+
 # Jupyter
 .ipynb_checkpoints

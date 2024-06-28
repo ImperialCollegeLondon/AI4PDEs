@@ -40,6 +40,9 @@ block = Block(grid)
 model = FlowPastBlock(grid, block)
 simulation = model.initialize()
 simulation.run(ntimesteps=100)
+import matplotlib.pyplot as plt
+plt.imshow(-simulation.prognostic_variables.u.cpu()[0,0,:,:])
+plt.colorbar()
 ```
 
 ## Contributing

@@ -1,25 +1,55 @@
 import torch
 
-def boundary_condition_2D_u(u, ub, halo=1):
-	u[0, 0,      :,  :halo].fill_(ub)	# inflow on the right x=0
-	u[0, 0,      :, -halo:].fill_(ub)	# outflow on the left x=Lx
-	u[0, 0,  :halo,      :].fill_(0.0)	# u=0 at y=0  (no-slip)
-	u[0, 0, -halo:,      :].fill_(0.0)	# u=0 at y=Ly
-	return u
+# def boundary_condition_2D_u(u, ub, halo=1):
+# 	u[0, 0,      :,  :halo].fill_(ub)	# inflow on the right x=0
+# 	u[0, 0,      :, -halo:].fill_(ub)	# outflow on the left x=Lx
+# 	u[0, 0,  :halo,      :].fill_(0.0)	# u=0 at y=0  (no-slip)
+# 	u[0, 0, -halo:,      :].fill_(0.0)	# u=0 at y=Ly
+# 	return u
     
-def boundary_condition_2D_v(v, ub, halo=1):
-	v[0, 0,      :,  :halo].fill_(0.0)	# v=0 at x=0 (no-slip)
-	v[0, 0,      :, -halo:].fill_(0.0)	# v=0 at x=Lx (no-slip)
-	v[0, 0,  :halo,      :].fill_(0.0)	# v=0 at y=0 (no inflow from south)
-	v[0, 0, -halo:,      :].fill_(0.0)	# v=0 at y=Ly (no outflow to north)
-	return v
+# def boundary_condition_2D_v(v, ub, halo=1):
+# 	v[0, 0,      :,  :halo].fill_(0.0)	# v=0 at x=0 (no-slip)
+# 	v[0, 0,      :, -halo:].fill_(0.0)	# v=0 at x=Lx (no-slip)
+# 	v[0, 0,  :halo,      :].fill_(0.0)	# v=0 at y=0 (no inflow from south)
+# 	v[0, 0, -halo:,      :].fill_(0.0)	# v=0 at y=Ly (no outflow to north)
+# 	return v
+
+# def boundary_condition_2D_p(p):
+# 	p[0, 0,  :,  0] = p[0, 0, :, 1]     # dp/dx=0 at x=0
+# 	p[0, 0,  :, -1].fill_(0.0)		    # p=0 at x=Lx
+# 	p[0, 0,  0,  :] = p[0, 0,  1, :]    # dp/dy=0 at y=0
+# 	p[0, 0, -1,  :] = p[0, 0, -2, :]	# dp/dy=0 at y=Ly
+# 	return p
+
+def boundary_condition_2D_u(u, ub, halo=1):
+	ny = u.shape[2]
+	nx = u.shape[3]
+	uu = torch.nn.functional.pad(u, (1, 1, 1, 1), mode='constant', value=0)
+	uu[0, 0,    :,    0].fill_(ub)
+	uu[0, 0,    :, nx+1].fill_(ub)
+	uu[0, 0,    0,    :].fill_(0.0)
+	uu[0, 0, ny+1,    :].fill_(0.0)
+	return uu
+    
+def boundary_condition_2D_v(v, vb, halo=1):
+	ny = v.shape[2]
+	nx = v.shape[3]
+	vv = torch.nn.functional.pad(v, (1, 1, 1, 1), mode='constant', value=0)
+	vv[0, 0,    :,    0].fill_(0.0)
+	vv[0, 0,    :, nx+1].fill_(0.0)
+	vv[0, 0,    0,    :].fill_(0.0)
+	vv[0, 0, ny+1,    :].fill_(0.0)
+	return vv
 
 def boundary_condition_2D_p(p):
-	p[0, 0,  :,  0] = p[0, 0, :, 1]     # dp/dx=0 at x=0
-	p[0, 0,  :, -1].fill_(0.0)		    # p=0 at x=Lx
-	p[0, 0,  0,  :] = p[0, 0,  1, :]    # dp/dy=0 at y=0
-	p[0, 0, -1,  :] = p[0, 0, -2, :]	# dp/dy=0 at y=Ly
-	return p
+	ny = p.shape[2]
+	nx = p.shape[3]
+	pp = torch.nn.functional.pad(p, (1, 1, 1, 1), mode='constant', value=0)	
+	pp[0, 0,  :,  0] = pp[0, 0, :, 1]     # dp/dx=0 at x=0
+	pp[0, 0,  :, -1].fill_(0.0)		    # p=0 at x=Lx
+	pp[0, 0,  0,  :] = pp[0, 0,  1, :]    # dp/dy=0 at y=0
+	pp[0, 0, -1,  :] = pp[0, 0, -2, :]	# dp/dy=0 at y=Ly
+	return pp
 
 # TODO generalise to halo>1
 # def boundary_condition_2D_p(p, halo=1):

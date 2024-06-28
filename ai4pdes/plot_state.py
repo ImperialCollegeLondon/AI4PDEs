@@ -51,7 +51,10 @@ def plot_sensor(output):
     return fig
 
 def animate_u(filepath, n_t, save_filename, 
-              var="u", dt=10, vmax=1., vmin=0):
+              var="u", 
+              dt=10, 
+              vmax=1., 
+              vmin=0):
     """Plot animation"""
     fig = plt.figure(figsize=(15, 10))
     u_t = np.load(f"{filepath}/{var}{1*dt}.npy")

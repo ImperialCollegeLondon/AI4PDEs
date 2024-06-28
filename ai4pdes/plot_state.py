@@ -50,18 +50,20 @@ def plot_sensor(output):
         plt.ylabel('u velocity (m/s)')
     return fig
 
-def animate_u(filepath, n_t, save_filename, dt=50):
+def animate_u(filepath, n_t, save_filename, 
+              dt=10, vmax=1.):
     """Plot animation"""
     fig = plt.figure(figsize=(15, 10))
     u_t = np.load(f"{filepath}/u1.npy")
-    im = plt.imshow(-u_t[0, 0, :, :]) #, vmin=-2, vmax=2)
+    im = plt.imshow(-u_t[0, 0, :, :], vmin=0., vmax=vmax)
     plt.colorbar()
     def update(t):
         # for each frame, update the data stored on each artist.
         # Open file for timestep t
         u_t = np.load(f"{filepath}/u{t*dt+1}.npy")
         im.set_array(-u_t[0, 0, :, :])
-        plt.title(f"Flow at time {t*dt+1}")
+        im.set_clim(vmin=0., vmax=vmax)
+        plt.title(f"Flow at time {t*dt}")
  
     ani = animation.FuncAnimation(fig=fig, func=update, frames=n_t-1,
                                   interval=30, blit=False)

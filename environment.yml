@@ -1,0 +1,13 @@
+name: AI4PDE
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - matplotlib
+  - pytorch
+  - numpy
+  - ipykernel
+  - jupyter
+  - pytest
+prefix: /Users/lauraman/miniconda3/envs/AI4PDE

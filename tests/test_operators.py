@@ -9,7 +9,7 @@ def test_xadv_operator():
 
     # Assert sum to zero per row
     assert np.allclose(adv_operator.sum(axis=0), 0)
-    assert np.allclose(adv_operator.sum(), 0)
+    assert np.allclose(adv_operator.sum(), 0, atol=np.finfo(adv_operator.dtype).eps)
 
     # # test that this is close to what numpy.gradient does
     # xfield = np.random.randn(16, 16)

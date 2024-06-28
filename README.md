@@ -6,6 +6,12 @@
 AI4PDEs is a package that solves partial differential equations (PDEs) using functionality from PyTorch.
 It currently solves the 2D Navier-Stokes equations, 2D advection-diffusion equations and 3D Navier-Stokes equations.
 
+## Gallery
+
+Some flow past a block!
+
+![u_animation](https://github.com/ImperialCollegeLondon/AI4PDEs/assets/25530332/31a8569f-ffd8-4522-aca9-918817be3d1b)
+
 ## Installation
 
 1. **Clone the repo**
@@ -41,6 +47,11 @@ block = Block(grid)
 model = FlowPastBlock(grid, block)
 simulation = model.initialize()
 simulation.run(ntimesteps=100)
+```
+
+and visualise it
+
+```python
 import matplotlib.pyplot as plt
 plt.imshow(-simulation.prognostic_variables.u.cpu()[0,0,:,:])
 plt.colorbar()

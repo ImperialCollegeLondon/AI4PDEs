@@ -4,6 +4,7 @@
 [![Documentation](https://readthedocs.org/projects/AI4PDEs/badge/?version=latest)](https://ai4pdes.readthedocs.io/en/latest/?badge=latest)
 
 AI4PDEs is a package that solves partial differential equations (PDEs) using functionality from PyTorch.
+It currently solves the 2D Navier-Stokes equations, 2D advection-diffusion equations and 3D Navier-Stokes equations.
 
 ## Installation
 

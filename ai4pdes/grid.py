@@ -38,6 +38,10 @@ class Grid:
         else:
             self.device = device
 
+
+        # TODO find a better way of solving issue when you have both GPUs and CPUs available            
+        device = "cpu"            
+
     def is2D(self):
         return self.nz == 1
     

@@ -20,9 +20,13 @@ block = Block(grid)
 model = FlowPastBlock(grid, block)
 simulation = model.initialize()
 simulation.run(ntimesteps=100)
-import matplotlib.pyplot as plt
-plt.imshow(-simulation.prognostic_variables.u.cpu()[0,0,:,:])
-plt.colorbar()
+```
+
+and visualise it
+
+```python
+from ai4pdes.plot_state import plot_u, plot_v
+plot_u(simulation.prognostic_variables)
 ```
 
 ## Gallery

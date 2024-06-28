@@ -45,7 +45,8 @@ dependencies = ["numpy",
                 "torch",
                 "jupyter",
                 "pandas",
-                "ipykernel"]
+                "ipykernel",
+                "tqdm"]
 
 [project.optional-dependencies]
 dev = [

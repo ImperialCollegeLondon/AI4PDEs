@@ -18,7 +18,7 @@ class Feedback:
         if itime % self.ncheck == 0:
             a = diagnostic_variables.a
             residual = np.max(np.abs(a.cpu().detach().numpy()))
-            print('Time step:', itime, 'Pressure residual:',"{:.5f}".format(residual))
+            # print('Time step:', itime, 'Pressure residual:',"{:.5f}".format(residual))
 
             if residual > self.residual_max:
                 self.stop_simulation = True

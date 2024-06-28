@@ -2,7 +2,7 @@ from ai4pdes.viscosity import Viscosity
 from ai4pdes.time_stepping import PredictorCorrector
 from ai4pdes.output import Output
 from ai4pdes.feedback import Feedback
-#from ai4pdes.multigrid import FcycleMultigrid
+# from ai4pdes.multigrid import FcycleMultigrid
 from ai4pdes.variables import PrognosticVariables, DiagnosticVariables
 from ai4pdes.operators import get_weights_linear_2D
 from ai4pdes.boundary_conditions import boundary_condition_2D_u, boundary_condition_2D_p, boundary_condition_2D_v, boundary_condition_2D_cw
@@ -12,7 +12,7 @@ import math
 import torch
 import torch.nn as nn
 
-class FlowPastBlock:
+class FlowPastBlock(nn.Module):
     def __init__(self,
         grid,
         block = None,
@@ -24,11 +24,14 @@ class FlowPastBlock:
         niteration = 5,
 
     ):
+
+        super(FlowPastBlock, self).__init__()
+
         self.grid = grid
         self.block = Block(grid) if block is None else block
         self.viscosity = viscosity
         self.time_stepping = time_stepping
-        #self.multigrid = FcycleMultigrid(grid) if multigrid is None else multigrid
+        # self.multigrid = FcycleMultigrid(grid) if multigrid is None else multigrid
         self.output = output
         self.feedback = feedback
 
@@ -37,9 +40,17 @@ class FlowPastBlock:
         self.nlevel = int(math.log(self.grid.ny, 2)) + 1
 
         # Define operators
-        self.xadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
-        self.yadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
-        self.diff = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
+
+        self.xadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=0)
+        self.yadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=0)
+        self.diff = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=0)
+
+        # Define operators (old version)
+        # self.xadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
+        # self.yadv = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
+        # self.diff = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
+
+
         self.A    = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=0)
         self.Ahalo= nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1)
         self.res  = nn.Conv2d(1, 1, kernel_size=2, stride=2, padding=0)  
@@ -74,73 +85,12 @@ class FlowPastBlock:
         # gather into a simulation object
         simulation = Simulation(prognostic_variables, diagnostic_variables, self)
         return simulation  
-
-    def forward(self,
-        prognostic_variables,
-        diagnostic_variables,
-        ):
-
-        # do not execute forward step if simulation should stop (NaNs detected, not converging...)
-        if self.feedback.stop_simulation:
-            return None
-
-        dt = self.time_stepping.dt
-        u = prognostic_variables.u  # unpack u, v, p
-        v = prognostic_variables.v
-        p = diagnostic_variables.p
-
-        boundary_condition_2D_u(u, self.grid.ub) 
-        boundary_condition_2D_v(v, self.grid.ub)  
-        boundary_condition_2D_p(p)   
-        
-        Grapx_p  = self.xadv(p) * dt 
-        Grapy_p = self.yadv(p) * dt 
-
-        ADx_u = self.xadv(u) 
-        ADy_u = self.yadv(u) 
-        ADx_v = self.xadv(v)
-        ADy_v = self.yadv(v) 
-        AD2_u = self.diff(u)
-        AD2_v = self.diff(v) 
-
-        # First step for solving uvw
-        bu = diagnostic_variables.bu  # unpack bu, bv
-        bv = diagnostic_variables.bv
-
-        bu = u + 0.5 * (self.viscosity.nu * AD2_u * dt - u * ADx_u * dt - v * ADy_u * dt) - Grapx_p 
-        bv = v + 0.5 * (self.viscosity.nu * AD2_v * dt - u * ADx_v * dt - v * ADy_v * dt) - Grapy_p 
-        self.solid_body(bu, bv, self.block.sigma, dt)
-
-        # Padding velocity vectors 
-        boundary_condition_2D_u(bu, self.grid.ub) 
-        boundary_condition_2D_v(bv, self.grid.ub) 
-
-        ADx_u = self.xadv(bu) ; ADy_u = self.yadv(bu) 
-        ADx_v = self.xadv(bv) ; ADy_v = self.yadv(bv) 
-        AD2_u = self.diff(bu) ; AD2_v = self.diff(bv) 
-
-        # Second step for solving uvw   
-        u = u + self.viscosity.nu * AD2_u * dt - bu * ADx_u * dt - bv * ADy_u * dt - Grapx_p 
-        v = v + self.viscosity.nu * AD2_v * dt - bu * ADx_v * dt - bv * ADy_v * dt - Grapy_p 
-        self.solid_body(u, v, self.block.sigma, dt)
-
-        # pressure
-        boundary_condition_2D_u(u, self.grid.ub)
-        boundary_condition_2D_v(v, self.grid.ub)
-        a = diagnostic_variables.a
-        self.F_cycle_MG(u, v, p, a, dt, self.niteration, self.diag, self.nlevel)
-
-        # Pressure gradient correction    
-        boundary_condition_2D_p(p)  
-        u = u - self.xadv(p) * dt
-        v = v - self.yadv(p) * dt 
-        self.solid_body(u, v, self.block.sigma, dt)
-        return None
     
-    def F_cycle_MG(self, u, v, p, a, dt, iteration, diag, nlevel):
+    def F_cycle_MG(self, u, v, p, dt, iteration, diag, nlevel):
         b = -(self.xadv(u) + self.yadv(v)) / dt
         for MG in range(iteration):
-            r = self.Ahalo(boundary_condition_2D_p(p)) - b 
+            a = torch.zeros((1,1,1,1), device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            r = self.A(boundary_condition_2D_p(p)) - b  
             r_s = []
             r_s.append(r)
             for i in range(1 ,nlevel):
@@ -155,12 +105,95 @@ class FlowPastBlock:
                 
                 a = self.prol(a)
             p = p - a
-            p = p - self.Ahalo(boundary_condition_2D_p(p)) / diag + b / diag
-        return None
+            p = p - self.A(boundary_condition_2D_p(p)) / diag + b / diag
+        return p
     
     def solid_body(self, u, v, sigma, dt):
         u = u / (1 + dt * sigma) 
         v = v / (1 + dt * sigma) 
+        return u,v  #None
+
+    def forward(self,
+        prognostic_variables,
+        diagnostic_variables,
+        ):
+
+        # do not execute forward step if simulation should stop (NaNs detected, not converging...)
+        if self.feedback.stop_simulation:
+            return None
+
+        dt = self.time_stepping.dt
+        # u = prognostic_variables.u  # unpack u, v, p
+        # v = prognostic_variables.v
+        # p = diagnostic_variables.p
+
+        # print('before making a padding', diagnostic_variables.p.shape)
+
+        prognostic_variables.uu = boundary_condition_2D_u(prognostic_variables.u, self.grid.ub) 
+        prognostic_variables.vv = boundary_condition_2D_v(prognostic_variables.v, self.grid.ub)  
+        diagnostic_variables.pp = boundary_condition_2D_p(diagnostic_variables.p)   
+
+        # print('after making a padding', diagnostic_variables.p.shape)
+
+        Grapx_p  = self.xadv(diagnostic_variables.pp) * dt 
+        Grapy_p = self.yadv(diagnostic_variables.pp) * dt 
+
+        ADx_u = self.xadv(prognostic_variables.uu) 
+        ADy_u = self.yadv(prognostic_variables.uu) 
+        ADx_v = self.xadv(prognostic_variables.vv)
+        ADy_v = self.yadv(prognostic_variables.vv) 
+        AD2_u = self.diff(prognostic_variables.uu)
+        AD2_v = self.diff(prognostic_variables.vv) 
+        # print(ADx_u[ADx_u!=0])
+        # print(ADy_u[ADx_u!=0])
+        # print(AD2_u[ADx_u!=0])
+
+        # print(u[u!=0])
+        # print(v[v!=0])
+        # First step for solving uvw
+        # bu = diagnostic_variables.bu  # unpack bu, bv
+        # bv = diagnostic_variables.bv
+
+        # bu = u + 0.5 * (self.viscosity.nu * AD2_u * dt - u * ADx_u * dt - v * ADy_u * dt) - Grapx_p 
+        # bv = v + 0.5 * (self.viscosity.nu * AD2_v * dt - u * ADx_v * dt - v * ADy_v * dt) - Grapy_p 
+
+        diagnostic_variables.bu = prognostic_variables.u + 0.5 * (self.viscosity.nu * AD2_u * dt - prognostic_variables.u * ADx_u * dt - prognostic_variables.v * ADy_u * dt) - Grapx_p 
+        diagnostic_variables.bv = prognostic_variables.v + 0.5 * (self.viscosity.nu * AD2_v * dt - prognostic_variables.u * ADx_v * dt - prognostic_variables.v * ADy_v * dt) - Grapy_p 
+        # print(bu[bu!=0])
+        # print(bv[bv!=0])        
+        # self.solid_body(diagnostic_variables.bu, diagnostic_variables.bv, self.block.sigma, dt)
+        [diagnostic_variables.bu, diagnostic_variables.bv] = self.solid_body(diagnostic_variables.bu, diagnostic_variables.bv, self.block.sigma, dt)
+
+        # Padding velocity vectors 
+        diagnostic_variables.buu = boundary_condition_2D_u(diagnostic_variables.bu, self.grid.ub) 
+        diagnostic_variables.bvv = boundary_condition_2D_v(diagnostic_variables.bv, self.grid.ub) 
+
+        # ADx_u = self.xadv(bu) ; ADy_u = self.yadv(bu) 
+        # ADx_v = self.xadv(bv) ; ADy_v = self.yadv(bv) 
+        # AD2_u = self.diff(bu) ; AD2_v = self.diff(bv) 
+
+        ADx_u = self.xadv(diagnostic_variables.buu) ; ADy_u = self.yadv(diagnostic_variables.buu) 
+        ADx_v = self.xadv(diagnostic_variables.bvv) ; ADy_v = self.yadv(diagnostic_variables.bvv) 
+        AD2_u = self.diff(diagnostic_variables.buu) ; AD2_v = self.diff(diagnostic_variables.bvv) 
+
+        # Second step for solving uvw   
+        prognostic_variables.u = prognostic_variables.u + self.viscosity.nu * AD2_u * dt - diagnostic_variables.bu * ADx_u * dt - diagnostic_variables.bv * ADy_u * dt - Grapx_p 
+        prognostic_variables.v = prognostic_variables.v + self.viscosity.nu * AD2_v * dt - diagnostic_variables.bu * ADx_v * dt - diagnostic_variables.bv * ADy_v * dt - Grapy_p 
+        # self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
+        [prognostic_variables.u, prognostic_variables.v] = self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
+
+        # pressure
+        prognostic_variables.uu = boundary_condition_2D_u(prognostic_variables.u, self.grid.ub)
+        prognostic_variables.vv = boundary_condition_2D_v(prognostic_variables.v, self.grid.ub)
+        # a = diagnostic_variables.a
+        diagnostic_variables.p = self.F_cycle_MG(prognostic_variables.uu, prognostic_variables.vv, diagnostic_variables.p, dt, self.niteration, self.diag, self.nlevel)
+
+        # Pressure gradient correction    
+        diagnostic_variables.pp = boundary_condition_2D_p(diagnostic_variables.p)   
+        prognostic_variables.u = prognostic_variables.u - self.xadv(diagnostic_variables.pp) * dt
+        prognostic_variables.v = prognostic_variables.v - self.yadv(diagnostic_variables.pp) * dt 
+        # self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
+        [prognostic_variables.u, prognostic_variables.v] = self.solid_body(prognostic_variables.u, prognostic_variables.v, self.block.sigma, dt)
         return None
     
 class Block:
@@ -174,9 +207,9 @@ class Block:
         size_y = None,
     ):    
         self.cor_x = int(grid.nx/4) if cor_x is None else cor_x
-        self.cor_y = int(grid.ny/4) if cor_y is None else cor_y
-        self.size_x = int(grid.nx/4) if size_x is None else size_x
-        self.size_y = int(grid.ny/4) if size_y is None else size_y
+        self.cor_y = int(grid.ny/2) if cor_y is None else cor_y
+        self.size_x = int(grid.nx/32) if size_x is None else size_x
+        self.size_y = int(grid.ny/8) if size_y is None else size_y
         self.timescale = timescale
         self.sigma = self.create_solid_body_2D(grid)
 
